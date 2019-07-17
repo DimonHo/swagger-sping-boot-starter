@@ -5,10 +5,12 @@ import com.google.common.base.Predicates;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,15 +40,13 @@ import static com.google.common.collect.Lists.newArrayList;
 @Import({
         Swagger2Configuration.class
 })
+@EnableConfigurationProperties(SwaggerProperties.class)
 public class SwaggerAutoConfiguration implements BeanFactoryAware {
 
     private BeanFactory beanFactory;
 
-    @Bean
-    @ConditionalOnMissingBean
-    public SwaggerProperties swaggerProperties() {
-        return new SwaggerProperties();
-    }
+    @Autowired
+    SwaggerProperties swaggerProperties;
 
     @Bean
     public UiConfiguration uiConfiguration(SwaggerProperties swaggerProperties) {
@@ -223,8 +223,8 @@ public class SwaggerAutoConfiguration implements BeanFactoryAware {
      * @return
      */
     private ApiKey apiKey() {
-        return new ApiKey(swaggerProperties().getAuthorization().getName(),
-                swaggerProperties().getAuthorization().getKeyName(),
+        return new ApiKey(swaggerProperties.getAuthorization().getName(),
+                swaggerProperties.getAuthorization().getKeyName(),
                 ApiKeyVehicle.HEADER.getValue());
     }
 
@@ -234,7 +234,7 @@ public class SwaggerAutoConfiguration implements BeanFactoryAware {
      * @return
      */
     private BasicAuth basicAuth() {
-        return new BasicAuth(swaggerProperties().getAuthorization().getName());
+        return new BasicAuth(swaggerProperties.getAuthorization().getName());
     }
 
     /**
@@ -246,7 +246,7 @@ public class SwaggerAutoConfiguration implements BeanFactoryAware {
     private SecurityContext securityContext() {
         return SecurityContext.builder()
                 .securityReferences(defaultAuth())
-                .forPaths(PathSelectors.regex(swaggerProperties().getAuthorization().getAuthRegex()))
+                .forPaths(PathSelectors.regex(swaggerProperties.getAuthorization().getAuthRegex()))
                 .build();
     }
 
@@ -260,7 +260,7 @@ public class SwaggerAutoConfiguration implements BeanFactoryAware {
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
         authorizationScopes[0] = authorizationScope;
         return Collections.singletonList(SecurityReference.builder()
-                .reference(swaggerProperties().getAuthorization().getName())
+                .reference(swaggerProperties.getAuthorization().getName())
                 .scopes(authorizationScopes).build());
     }
 
