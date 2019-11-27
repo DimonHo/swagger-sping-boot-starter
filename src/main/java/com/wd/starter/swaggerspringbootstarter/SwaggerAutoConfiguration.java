@@ -1,5 +1,6 @@
 package com.wd.starter.swaggerspringbootstarter;
 
+import com.fasterxml.classmate.TypeResolver;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.springframework.beans.BeansException;
@@ -14,9 +15,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import springfox.documentation.builders.*;
+import springfox.documentation.schema.AlternateTypeRule;
+import springfox.documentation.schema.AlternateTypeRuleConvention;
 import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
@@ -30,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 /**
  * @Author: He Zhigang
@@ -375,5 +381,22 @@ public class SwaggerAutoConfiguration implements BeanFactoryAware {
         }
 
         return responseMessages;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(name = "swagger.enabled", matchIfMissing = true)
+    public AlternateTypeRuleConvention pageableConvention(final TypeResolver resolver) {
+        return new AlternateTypeRuleConvention() {
+            @Override
+            public int getOrder() {
+                return Ordered.LOWEST_PRECEDENCE;
+            }
+
+            @Override
+            public List<AlternateTypeRule> rules() {
+                return newArrayList(newRule(resolver.resolve(Pageable.class), resolver.resolve(PageParam.class)));
+            }
+        };
     }
 }
