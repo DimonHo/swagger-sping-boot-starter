@@ -25,3 +25,5 @@ public class XxxApplication {
     }
 }
 ```
+
+参考：https://github.com/SpringForAll/spring-boot-starter-swagger
